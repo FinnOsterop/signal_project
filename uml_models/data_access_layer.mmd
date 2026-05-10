@@ -1,0 +1,67 @@
+classDiagram
+    class DataListener {
+        <<interface>>
+        +connect() void
+        +listen() void
+        +close() void
+    }
+
+    class TCPDataListener {
+        -int port
+        +connect() void
+        +listen() void
+        +close() void
+    }
+
+    class WebSocketDataListener {
+        -String url
+        +connect() void
+        +listen() void
+        +close() void
+    }
+
+    class FileDataListener {
+        -String directory
+        +connect() void
+        +listen() void
+        +close() void
+    }
+
+    class DataParser {
+        +parse(String rawInput) PatientRecord
+        +isValid(String rawInput) boolean
+    }
+
+    class RawMessage {
+        -String sourceType
+        -String content
+        -long receivedAt
+        +getContent() String
+    }
+
+    class PatientRecord {
+        -String patientId
+        -String label
+        -String value
+        -long timestamp
+        +getPatientId() String
+    }
+
+    class DataSourceAdapter {
+        -DataParser parser
+        -DataStorage storage
+        +handleMessage(RawMessage message) void
+    }
+
+    class DataStorage {
+        +saveRecord(PatientRecord record) void
+    }
+
+    TCPDataListener ..|> DataListener
+    WebSocketDataListener ..|> DataListener
+    FileDataListener ..|> DataListener
+    DataListener "1" --> "0..*" RawMessage : receives
+    DataSourceAdapter "1" --> "1" DataParser : uses
+    DataParser "1" --> "1" PatientRecord : creates
+    DataSourceAdapter "1" --> "1" DataStorage : saves to
+    DataSourceAdapter "1" --> "0..*" RawMessage : handles

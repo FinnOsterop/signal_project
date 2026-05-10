@@ -1,0 +1,60 @@
+classDiagram
+    class DataStorage {
+        <<interface>>
+        +saveRecord(PatientRecord record) void
+        +getRecords(String patientId, long start, long end) List~PatientRecord~
+        +deleteOldRecords() void
+    }
+
+    class SecureDataStorage {
+        -Map~String, PatientData~ patients
+        -AccessController accessController
+        -RetentionPolicy retentionPolicy
+        +saveRecord(PatientRecord record) void
+        +getRecords(String patientId, long start, long end) List~PatientRecord~
+        +deleteOldRecords() void
+    }
+
+    class PatientData {
+        -String patientId
+        -List~PatientRecord~ records
+        +addRecord(PatientRecord record) void
+        +getRecords(long start, long end) List~PatientRecord~
+    }
+
+    class PatientRecord {
+        -String patientId
+        -String label
+        -String value
+        -long timestamp
+        -int version
+        +getTimestamp() long
+    }
+
+    class DataRetriever {
+        -DataStorage storage
+        +findPatientData(String patientId, long start, long end) List~PatientRecord~
+    }
+
+    class AccessController {
+        +canRead(String userId, String patientId) boolean
+        +canWrite(String userId) boolean
+    }
+
+    class RetentionPolicy {
+        -int maxAgeDays
+        +isExpired(PatientRecord record) boolean
+    }
+
+    class AuditLog {
+        +recordAccess(String userId, String patientId) void
+        +recordChange(String userId, PatientRecord record) void
+    }
+
+    SecureDataStorage ..|> DataStorage
+    SecureDataStorage "1" *-- "0..*" PatientData : contains
+    PatientData "1" *-- "0..*" PatientRecord : contains
+    DataRetriever "1" --> "1" DataStorage : queries
+    SecureDataStorage "1" --> "1" AccessController : checks access
+    SecureDataStorage "1" --> "1" RetentionPolicy : deletes old data
+    SecureDataStorage "1" --> "1" AuditLog : logs access

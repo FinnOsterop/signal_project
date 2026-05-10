@@ -1,0 +1,60 @@
+classDiagram
+    class PatientIdentifier {
+        -PatientIdMapper mapper
+        -IdentityManager identityManager
+        +identify(String simulatorId) IdentificationResult
+    }
+
+    class IdentityManager {
+        -HospitalDatabase hospitalDatabase
+        -MismatchHandler mismatchHandler
+        +verifyMatch(String simulatorId) IdentificationResult
+        +handleMissingMatch(String simulatorId) void
+    }
+
+    class PatientIdMapper {
+        -Map~String, String~ idMap
+        +getHospitalId(String simulatorId) String
+        +addMapping(String simulatorId, String hospitalId) void
+    }
+
+    class HospitalDatabase {
+        +findPatient(String hospitalId) HospitalPatient
+        +patientExists(String hospitalId) boolean
+    }
+
+    class HospitalPatient {
+        -String hospitalId
+        -String name
+        -String dateOfBirth
+        -String medicalHistory
+        +getHospitalId() String
+        +getMedicalHistory() String
+    }
+
+    class IdentificationResult {
+        -boolean matched
+        -String simulatorId
+        -HospitalPatient patient
+        -String message
+        +isMatched() boolean
+    }
+
+    class MismatchHandler {
+        +handleUnknownId(String simulatorId) void
+        +handleDuplicateMatch(String simulatorId) void
+    }
+
+    class IdentityAuditLog {
+        +logMatch(String simulatorId, String hospitalId) void
+        +logMismatch(String simulatorId, String reason) void
+    }
+
+    PatientIdentifier "1" --> "1" PatientIdMapper : maps IDs
+    PatientIdentifier "1" --> "1" IdentityManager : verifies
+    IdentityManager "1" --> "1" HospitalDatabase : reads patient info
+    IdentityManager "1" --> "1" MismatchHandler : handles errors
+    IdentityManager "1" --> "1" IdentityAuditLog : logs result
+    PatientIdMapper "1" --> "0..*" HospitalPatient : links to
+    HospitalDatabase "1" --> "0..*" HospitalPatient : stores
+    PatientIdentifier "1" --> "1" IdentificationResult : returns

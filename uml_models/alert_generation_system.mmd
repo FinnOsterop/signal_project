@@ -1,0 +1,69 @@
+classDiagram
+    class AlertGenerator {
+        -DataStorage storage
+        -List~AlertRule~ rules
+        +evaluateData(PatientData data) List~Alert~
+        +addRule(AlertRule rule) void
+    }
+
+    class AlertRule {
+        <<interface>>
+        +isTriggered(PatientData data) boolean
+        +getCondition() String
+    }
+
+    class ThresholdRule {
+        -String metric
+        -String operator
+        -double limit
+        +isTriggered(PatientData data) boolean
+        +getCondition() String
+    }
+
+    class Alert {
+        -String patientId
+        -String condition
+        -long timestamp
+        -String priority
+        +getPatientId() String
+        +getCondition() String
+        +getTimestamp() long
+    }
+
+    class AlertManager {
+        -List~StaffNotifier~ notifiers
+        +dispatch(Alert alert) void
+        +saveAlert(Alert alert) void
+    }
+
+    class StaffNotifier {
+        +notifyStaff(Alert alert) void
+    }
+
+    class PatientIdentity {
+        -String patientId
+        -String displayName
+        +getPatientId() String
+    }
+
+    class DataStorage {
+        +saveAlert(Alert alert) void
+        +getRecentData(String patientId) List~PatientData~
+    }
+
+    class PatientData {
+        -String patientId
+        -String label
+        -String value
+        -long timestamp
+        +getPatientId() String
+    }
+
+    AlertGenerator "1" --> "1..*" AlertRule : uses
+    ThresholdRule ..|> AlertRule
+    AlertGenerator "1" --> "0..*" Alert : creates
+    AlertGenerator "1" --> "1" DataStorage : reads recent data
+    AlertManager "1" --> "0..*" Alert : dispatches
+    AlertManager "1" --> "1..*" StaffNotifier : notifies
+    Alert "1" --> "1" PatientIdentity : belongs to
+    DataStorage "1" --> "0..*" PatientData : stores
