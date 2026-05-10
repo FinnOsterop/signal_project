@@ -25,6 +25,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+/**
+ * Starts the simulator and sets up the data generators for the patients.
+ *
+ * <p>The class also reads the command-line options, creates the patient IDs, and shuffles them.
+ */
 public class HealthDataSimulator {
 
     private static int patientCount = 50; // Default number of patients
@@ -32,6 +37,15 @@ public class HealthDataSimulator {
     private static OutputStrategy outputStrategy = new ConsoleOutputStrategy(); // Default output strategy
     private static final Random random = new Random();
 
+    /**
+     * Starts the health data simulator from the command line.
+     *
+     * <p>It reads the arguments, creates and shuffles patient IDs, and then schedules the
+     * generators that make the patient data.
+     *
+     * @param args command-line arguments, for example patient count and output type
+     * @throws IOException if a file output directory cannot be created
+     */
     public static void main(String[] args) throws IOException {
 
         parseArguments(args);
@@ -44,6 +58,14 @@ public class HealthDataSimulator {
         scheduleTasksForPatients(patientIds);
     }
 
+    /**
+     * Reads the command-line arguments and updates the simulator settings.
+     *
+     * <p>For example, this method can change the amount of patients or the output type.
+     *
+     * @param args arguments given when starting the program
+     * @throws IOException if the directory for file output cannot be created
+     */
     private static void parseArguments(String[] args) throws IOException {
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
@@ -105,6 +127,9 @@ public class HealthDataSimulator {
         }
     }
 
+    /**
+     * Prints the available command-line options.
+     */
     private static void printHelp() {
         System.out.println("Usage: java HealthDataSimulator [options]");
         System.out.println("Options:");
@@ -122,6 +147,12 @@ public class HealthDataSimulator {
                 "  This command simulates data for 100 patients and sends the output to WebSocket clients connected to port 8080.");
     }
 
+    /**
+     * Creates the patient IDs starting from 1.
+     *
+     * @param patientCount number of patients to simulate
+     * @return list of patient IDs
+     */
     private static List<Integer> initializePatientIds(int patientCount) {
         List<Integer> patientIds = new ArrayList<>();
         for (int i = 1; i <= patientCount; i++) {
@@ -130,6 +161,11 @@ public class HealthDataSimulator {
         return patientIds;
     }
 
+    /**
+     * Creates the generator objects and schedules them for every patient.
+     *
+     * @param patientIds patient IDs that need generator tasks
+     */
     private static void scheduleTasksForPatients(List<Integer> patientIds) {
         ECGDataGenerator ecgDataGenerator = new ECGDataGenerator(patientCount);
         BloodSaturationDataGenerator bloodSaturationDataGenerator = new BloodSaturationDataGenerator(patientCount);
@@ -146,6 +182,13 @@ public class HealthDataSimulator {
         }
     }
 
+    /**
+     * Schedules one task so it runs again and again.
+     *
+     * @param task task that should be repeated
+     * @param period time between each run
+     * @param timeUnit time unit for the period
+     */
     private static void scheduleTask(Runnable task, long period, TimeUnit timeUnit) {
         scheduler.scheduleAtFixedRate(task, random.nextInt(5), period, timeUnit);
     }
