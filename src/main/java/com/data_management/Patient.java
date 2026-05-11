@@ -41,6 +41,36 @@ public class Patient {
     }
 
     /**
+     * Adds a new record using the original text value from the data source.
+     *
+     * @param rawValue the original value text
+     * @param recordType the type of record
+     * @param timestamp the time at which the measurement was taken
+     */
+    public void addRecord(String rawValue, String recordType, long timestamp) {
+        PatientRecord record = new PatientRecord(this.patientId, rawValue, recordType, timestamp);
+        this.patientRecords.add(record);
+    }
+
+    /**
+     * Returns this patient's ID.
+     *
+     * @return the patient ID
+     */
+    public int getPatientId() {
+        return patientId;
+    }
+
+    /**
+     * Returns all records for this patient.
+     *
+     * @return copy of all patient records
+     */
+    public List<PatientRecord> getAllRecords() {
+        return new ArrayList<>(patientRecords);
+    }
+
+    /**
      * Retrieves a list of PatientRecord objects for this patient that fall within a
      * specified time range.
      * The method filters records based on the start and end times provided.

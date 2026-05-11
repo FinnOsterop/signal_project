@@ -13,6 +13,7 @@ public class PatientRecord {
     private int patientId;
     private String recordType; // Example: ECG, blood pressure, etc.
     private double measurementValue; // Example: heart rate
+    private String rawValue;
     private long timestamp;
 
     /**
@@ -28,8 +29,36 @@ public class PatientRecord {
     public PatientRecord(int patientId, double measurementValue, String recordType, long timestamp) {
         this.patientId = patientId;
         this.measurementValue = measurementValue;
+        this.rawValue = Double.toString(measurementValue);
         this.recordType = recordType;
         this.timestamp = timestamp;
+    }
+
+    /**
+     * Constructs a new patient record from a text value.
+     *
+     * <p>This is useful for data read from output files, because values like saturation may include
+     * a percent sign and alert values may be text such as "triggered".
+     *
+     * @param patientId the unique identifier for the patient
+     * @param rawValue the original value from the data source
+     * @param recordType the type of measurement
+     * @param timestamp the time at which the measurement was recorded
+     */
+    public PatientRecord(int patientId, String rawValue, String recordType, long timestamp) {
+        this.patientId = patientId;
+        this.rawValue = rawValue;
+        this.measurementValue = parseMeasurementValue(rawValue);
+        this.recordType = recordType;
+        this.timestamp = timestamp;
+    }
+
+    private double parseMeasurementValue(String value) {
+        try {
+            return Double.parseDouble(value.replace("%", "").trim());
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
     }
 
     /**
@@ -48,6 +77,15 @@ public class PatientRecord {
      */
     public double getMeasurementValue() {
         return measurementValue;
+    }
+
+    /**
+     * Returns the original value as it was read from the data source.
+     *
+     * @return the raw value text
+     */
+    public String getRawValue() {
+        return rawValue;
     }
 
     /**

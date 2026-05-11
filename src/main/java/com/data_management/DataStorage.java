@@ -46,6 +46,23 @@ public class DataStorage {
     }
 
     /**
+     * Adds patient data using the original text value from the data source.
+     *
+     * @param patientId the unique identifier of the patient
+     * @param rawValue the original value text
+     * @param recordType the type of record
+     * @param timestamp the time at which the measurement was taken
+     */
+    public void addPatientData(int patientId, String rawValue, String recordType, long timestamp) {
+        Patient patient = patientMap.get(patientId);
+        if (patient == null) {
+            patient = new Patient(patientId);
+            patientMap.put(patientId, patient);
+        }
+        patient.addRecord(rawValue, recordType, timestamp);
+    }
+
+    /**
      * Retrieves a list of PatientRecord objects for a specific patient, filtered by
      * a time range.
      *
