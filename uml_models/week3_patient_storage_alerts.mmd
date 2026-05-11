@@ -1,0 +1,70 @@
+classDiagram
+    class DataReader {
+        <<interface>>
+        +readData(DataStorage dataStorage) void
+    }
+
+    class FileDataReader {
+        -Path directory
+        +readData(DataStorage dataStorage) void
+    }
+
+    class DataStorage {
+        -Map~Integer, Patient~ patientMap
+        +addPatientData(int patientId, double value, String recordType, long timestamp) void
+        +addPatientData(int patientId, String rawValue, String recordType, long timestamp) void
+        +getRecords(int patientId, long startTime, long endTime) List~PatientRecord~
+        +getAllPatients() List~Patient~
+    }
+
+    class Patient {
+        -int patientId
+        -List~PatientRecord~ patientRecords
+        +addRecord(double value, String recordType, long timestamp) void
+        +addRecord(String rawValue, String recordType, long timestamp) void
+        +getRecords(long startTime, long endTime) List~PatientRecord~
+        +getAllRecords() List~PatientRecord~
+    }
+
+    class PatientRecord {
+        -int patientId
+        -String recordType
+        -double measurementValue
+        -String rawValue
+        -long timestamp
+        +getMeasurementValue() double
+        +getRawValue() String
+        +getRecordType() String
+        +getTimestamp() long
+    }
+
+    class AlertGenerator {
+        -DataStorage dataStorage
+        -List~Alert~ alerts
+        +evaluateData(Patient patient) void
+        +getAlerts() List~Alert~
+        +clearAlerts() void
+    }
+
+    class Alert {
+        -String patientId
+        -String condition
+        -long timestamp
+        +getPatientId() String
+        +getCondition() String
+        +getTimestamp() long
+    }
+
+    class Main {
+        +main(String[] args) void
+    }
+
+    FileDataReader ..|> DataReader
+    FileDataReader "1" --> "1" DataStorage : stores parsed records
+    DataStorage "1" *-- "0..*" Patient : stores
+    Patient "1" *-- "0..*" PatientRecord : contains
+    AlertGenerator "1" --> "1" DataStorage : reads
+    AlertGenerator "1" --> "0..*" Alert : creates
+    AlertGenerator "1" --> "1" Patient : evaluates
+    Main "1" --> "1" DataStorage : can start
+    Main "1" --> "1" AlertGenerator : indirectly uses

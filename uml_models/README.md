@@ -351,3 +351,89 @@ from the storage and alert systems. If a new input source is added later, only a
 is needed. The parser and adapter can still be reused. This makes the model easier to maintain and
 also easier to test.
 This matches the requirement to keep input handling separate from the system.
+
+## Week 3 Implementation Diagram
+
+```mermaid
+classDiagram
+    class DataReader {
+        <<interface>>
+        +readData(DataStorage dataStorage) void
+    }
+
+    class FileDataReader {
+        -Path directory
+        +readData(DataStorage dataStorage) void
+    }
+
+    class DataStorage {
+        -Map~Integer, Patient~ patientMap
+        +addPatientData(int patientId, double value, String recordType, long timestamp) void
+        +addPatientData(int patientId, String rawValue, String recordType, long timestamp) void
+        +getRecords(int patientId, long startTime, long endTime) List~PatientRecord~
+        +getAllPatients() List~Patient~
+    }
+
+    class Patient {
+        -int patientId
+        -List~PatientRecord~ patientRecords
+        +addRecord(double value, String recordType, long timestamp) void
+        +addRecord(String rawValue, String recordType, long timestamp) void
+        +getRecords(long startTime, long endTime) List~PatientRecord~
+        +getAllRecords() List~PatientRecord~
+    }
+
+    class PatientRecord {
+        -int patientId
+        -String recordType
+        -double measurementValue
+        -String rawValue
+        -long timestamp
+        +getMeasurementValue() double
+        +getRawValue() String
+        +getRecordType() String
+        +getTimestamp() long
+    }
+
+    class AlertGenerator {
+        -DataStorage dataStorage
+        -List~Alert~ alerts
+        +evaluateData(Patient patient) void
+        +getAlerts() List~Alert~
+        +clearAlerts() void
+    }
+
+    class Alert {
+        -String patientId
+        -String condition
+        -long timestamp
+        +getPatientId() String
+        +getCondition() String
+        +getTimestamp() long
+    }
+
+    class Main {
+        +main(String[] args) void
+    }
+
+    FileDataReader ..|> DataReader
+    FileDataReader "1" --> "1" DataStorage : stores parsed records
+    DataStorage "1" *-- "0..*" Patient : stores
+    Patient "1" *-- "0..*" PatientRecord : contains
+    AlertGenerator "1" --> "1" DataStorage : reads
+    AlertGenerator "1" --> "0..*" Alert : creates
+    AlertGenerator "1" --> "1" Patient : evaluates
+    Main "1" --> "1" DataStorage : can start
+    Main "1" --> "1" AlertGenerator : indirectly uses
+```
+
+This extra diagram shows the main classes that were used for the week 3 implementation. The
+`FileDataReader` implements `DataReader` and reads the files created by the simulator's file output.
+The parsed data is saved in `DataStorage`, which stores patients by ID. Each `Patient` contains
+multiple `PatientRecord` objects, so records can be filtered by timestamp.
+
+The `AlertGenerator` evaluates a patient and creates `Alert` objects when one of the required
+conditions is found. These conditions include blood pressure alerts, oxygen saturation alerts, the
+combined hypotensive hypoxemia alert, ECG peaks, and triggered alert button data. `Main` is included
+because the `pom.xml` now starts this class, which can choose between running the simulator and
+running the `DataStorage` demo.
